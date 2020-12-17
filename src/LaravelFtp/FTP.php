@@ -19,11 +19,11 @@ class FTP
      *
      * @throws \Exception
      */
-    public function __construct($host, $user, $pass, $port = 21, $mode = FTP_ASCII)
+    public function __construct($host, $user, $pass, $port = 21, $secure = false, $mode = FTP_ASCII)
     {
         $this->mode = $mode;
 
-        if ($this->connection = @ftp_connect($host, ($port != 21) ? $port : 21)) {
+        if ($secure == true && $this->connection = @ftp_ssl_connect($host, ($port != 21) ? $port : 21)) {
 
             try {
                 @ftp_login($this->connection, $user, $pass);
@@ -32,7 +32,17 @@ class FTP
             }
             ftp_pasv($this->connection, true);
             return true;
+        }
 
+        if ($secure == false && $this->connection = @ftp_connect($host, ($port != 21) ? $port : 21)) {
+
+            try {
+                @ftp_login($this->connection, $user, $pass);
+            } catch (\Exception $e) {
+                throw new \Exception($e->getMessage());
+            }
+            ftp_pasv($this->connection, true);
+            return true;
         }
 
         throw new \Exception('Unable to establish connection to FTP server');
@@ -342,5 +352,4 @@ class FTP
             return false;
         }
     }
-
 }
